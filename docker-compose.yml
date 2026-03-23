@@ -1,0 +1,87 @@
+services:
+
+  # ─── BASE DE DATOS CENTRAL ───────────────────────────────────────────────────
+  db_central:
+    build: ./backend/database
+    container_name: paqtrack_db_central
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: paqtrack_db
+    volumes:
+      - db_central_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ─── BACKEND CENTRAL ─────────────────────────────────────────────────────────
+  backend_central:
+    build: ./backend/backend_central
+    container_name: paqtrack_api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db_central
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: paqtrack_db
+      JWT_SECRET: clave_secreta_cambiar_en_produccion
+      SYNC_API_KEY: sync_secret_key
+      PORT: 3000
+    depends_on:
+      db_central:
+        condition: service_healthy
+
+  # ─── BASE DE DATOS CLIENTE ───────────────────────────────────────────────────
+  db_cliente:
+    build: ./backend/database
+    container_name: paqtrack_db_cliente
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: paqtrack_cliente
+    volumes:
+      - db_cliente_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ─── BACKEND CLIENTE ─────────────────────────────────────────────────────────
+  backend_cliente:
+    build: ./backend/backend_cliente
+    container_name: paqtrack_cliente
+    restart: unless-stopped
+    environment:
+      DB_HOST: db_cliente
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: paqtrack_cliente
+      CENTRAL_URL: http://backend_central:3000
+      SYNC_API_KEY: sync_secret_key
+      CODIGO_EMPRESA: 1
+    depends_on:
+      db_cliente:
+        condition: service_healthy
+      backend_central:
+        condition: service_started
+
+  # ─── FRONTEND ────────────────────────────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    container_name: paqtrack_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      API_URL: http://localhost:3000/api
+    depends_on:
+      - backend_central
+
+volumes:
+  db_central_data:
+  db_cliente_data:
