@@ -13,25 +13,31 @@ export class Perfil {
   private usuariosService = inject(Usuarios);
 
   protected usuario = this.authService.getUsuario();
-  protected contrasenaActual = signal('');
-  protected contrasenaNueva = signal('');
+
+  protected contrasenaActual  = signal('');
+  protected contrasenaNueva   = signal('');
   protected contrasenaConfirm = signal('');
   protected guardando = signal(false);
-  protected exito = signal('');
-  protected error = signal('');
+  protected exito     = signal('');
+  protected error     = signal('');
 
   protected guardar() {
-    const nueva = this.contrasenaNueva().trim();
-    const confirm = this.contrasenaConfirm().trim();
+    const actual   = this.contrasenaActual().trim();
+    const nueva    = this.contrasenaNueva().trim();
+    const confirm  = this.contrasenaConfirm().trim();
 
-    if (!nueva) { this.error.set('La nueva contraseña no puede estar vacía'); return; }
+    // Validaciones en el frontend antes de llamar al backend
+    if (!actual)  { this.error.set('Debes introducir tu contraseña actual'); return; }
+    if (!nueva)   { this.error.set('La nueva contraseña no puede estar vacía'); return; }
     if (nueva.length < 6) { this.error.set('La contraseña debe tener al menos 6 caracteres'); return; }
-    if (nueva !== confirm) { this.error.set('Las contraseñas no coinciden'); return; }
+    if (nueva !== confirm) { this.error.set('Las contraseñas nuevas no coinciden'); return; }
+    if (actual === nueva)  { this.error.set('La nueva contraseña debe ser diferente a la actual'); return; }
 
     this.guardando.set(true);
     this.error.set('');
+    this.exito.set('');
 
-    this.usuariosService.update(this.usuario.codigo_usuario, { contrasena: nueva }).subscribe({
+    this.usuariosService.cambiarContrasena(actual, nueva).subscribe({
       next: () => {
         this.exito.set('Contraseña actualizada correctamente');
         this.contrasenaActual.set('');

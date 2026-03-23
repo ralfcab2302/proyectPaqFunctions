@@ -14,7 +14,12 @@ export class Usuarios {
   getById(id: number) {
     return this.http.get<{ usuario: Usuario }>(`${this.apiUrl}/usuarios/${id}`);
   }
-  create(data: { correo: string; contrasena: string; rol: string; codigo_empresa?: number | null }) {
+  create(data: {
+    correo: string;
+    contrasena: string;
+    rol: string;
+    codigo_empresa?: number | null;
+  }) {
     return this.http.post<{ mensaje: string; usuario: Usuario }>(`${this.apiUrl}/usuarios`, data);
   }
   update(id: number, data: { correo?: string; contrasena?: string; rol?: string }) {
@@ -22,5 +27,14 @@ export class Usuarios {
   }
   remove(id: number) {
     return this.http.delete<{ mensaje: string }>(`${this.apiUrl}/usuarios/${id}`);
+  }
+  cambiarContrasena(contrasenaActual: string, contrasenaNueva: string) {
+    return this.http.put(`${this.apiUrl}/usuarios/me/contrasena`, {
+      contrasenaActual,
+      contrasenaNueva,
+    });
+  }
+  resetContrasena(id: number, contrasenaNueva: string) {
+    return this.http.put<{ mensaje: string }>(`${this.apiUrl}/usuarios/${id}/contrasena`, { contrasenaNueva });
   }
 }

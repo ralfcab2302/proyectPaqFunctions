@@ -219,3 +219,86 @@ export const remove = async (req, res) => {
     return res.status(500).json({ mensaje: "Error interno del servidor" });
   }
 };
+
+export const cambiarContrasena = async (req, res) => {
+  const { contrasenaActual, contrasenaNueva } = req.body;
+
+  if (!contrasenaActual || !contrasenaNueva)
+    return res.status(400).json({ mensaje: "Debes enviar contrasenaActual y contrasenaNueva" });
+
+  if (contrasenaNueva.length < 6)
+    return res.status(400).json({ mensaje: "La nueva contraseña debe tener al menos 6 caracteres" });
+
+  try {
+    // Buscamos al usuario logueado (del token, no de los params)
+    const [rows] = await pool.query(
+      "SELECT codigo_usuario, contrasena FROM usuarios WHERE codigo_usuario = ? LIMIT 1",
+      [req.usuario.codigo_usuario]
+    );
+
+    if (rows.length === 0)
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+
+    // Verificamos que la contraseña actual sea correcta
+    const coincide = await bcrypt.compare(contrasenaActual, rows[0].contrasena);
+    if (!coincide)
+      return res.status(401).json({ mensaje: "La contraseña actual es incorrecta" });
+
+    // Hasheamos y guardamos la nueva
+    const hash = await bcrypt.hash(contrasenaNueva, 10);
+    await pool.query(
+      "UPDATE usuarios SET contrasena = ? WHERE codigo_usuario = ?",
+      [hash, req.usuario.codigo_usuario]
+    );
+
+    return res.status(200).json({ mensaje: "Contraseña actualizada correctamente" });
+
+  } catch (err) {
+    console.error("Error en cambiarContrasena:", err);
+    return res.status(500).json({ mensaje: "Error interno del servidor" });
+  }
+};
+export const resetContrasena = async (req, res) => {
+  const { id } = req.params;
+  const { contrasenaNueva } = req.body;
+
+  if (!contrasenaNueva)
+    return res.status(400).json({ mensaje: "contrasenaNueva es obligatorio" });
+
+  if (contrasenaNueva.length < 6)
+    return res.status(400).json({ mensaje: "La contraseña debe tener al menos 6 caracteres" });
+
+  try {
+    const [rows] = await pool.query(
+      "SELECT codigo_usuario, codigo_empresa, rol FROM usuarios WHERE codigo_usuario = ? LIMIT 1",
+      [id]
+    );
+
+    if (rows.length === 0)
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+
+    const objetivo = rows[0];
+
+    if (req.usuario.rol === "admin") {
+      if (objetivo.codigo_empresa !== req.usuario.codigo_empresa)
+        return res.status(403).json({ mensaje: "No puedes modificar usuarios de otra empresa" });
+      if (objetivo.rol === "superadmin")
+        return res.status(403).json({ mensaje: "No puedes modificar un superadmin" });
+    }
+
+    if (objetivo.codigo_usuario === req.usuario.codigo_usuario)
+      return res.status(400).json({ mensaje: "Usa el perfil para cambiar tu propia contraseña" });
+
+    const hash = await bcrypt.hash(contrasenaNueva, 10);
+    await pool.query(
+      "UPDATE usuarios SET contrasena = ? WHERE codigo_usuario = ?",
+      [hash, id]
+    );
+
+    return res.status(200).json({ mensaje: "Contraseña actualizada correctamente" });
+
+  } catch (err) {
+    console.error("Error en resetContrasena:", err);
+    return res.status(500).json({ mensaje: "Error interno del servidor" });
+  }
+};

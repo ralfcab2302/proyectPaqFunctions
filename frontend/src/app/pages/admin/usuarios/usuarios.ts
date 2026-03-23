@@ -12,25 +12,33 @@ import { AuthService } from '../../../services/auth';
 })
 export class AdminUsuarios implements OnInit {
   private usuariosService = inject(Usuarios);
-  private empresaService = inject(EmpresaService);
-  private authService = inject(AuthService);
+  private empresaService  = inject(EmpresaService);
+  private authService     = inject(AuthService);
 
-  protected usuarios = signal<Usuario[]>([]);
-  protected empresas = signal<Empresa[]>([]);
-  protected cargando = signal(true);
-  protected error = signal('');
-  protected exito = signal('');
+  protected usuarios  = signal<Usuario[]>([]);
+  protected empresas  = signal<Empresa[]>([]);
+  protected cargando  = signal(true);
+  protected error     = signal('');
+  protected exito     = signal('');
   protected rolActual = this.authService.getUsuario()?.rol;
 
-  // Modal
-  protected modalAbierto = signal(false);
-  protected modoEditar = signal(false);
+  // Modal editar / crear
+  protected modalAbierto        = signal(false);
+  protected modoEditar          = signal(false);
   protected usuarioSeleccionado = signal<Usuario | null>(null);
-  protected formCorreo = signal('');
-  protected formContrasena = signal('');
-  protected formRol = signal('usuario');
-  protected formEmpresa = signal<number | null>(null);
-  protected guardando = signal(false);
+  protected formCorreo          = signal('');
+  protected formContrasena      = signal('');
+  protected formRol             = signal('usuario');
+  protected formEmpresa         = signal<number | null>(null);
+  protected guardando           = signal(false);
+
+  // Modal cambio de contraseña
+  protected modalContrasenaAbierto = signal(false);
+  protected usuarioContrasena      = signal<Usuario | null>(null);
+  protected nuevaContrasena        = signal('');
+  protected confirmarContrasena    = signal('');
+  protected guardandoContrasena    = signal(false);
+  protected errorContrasena        = signal('');
 
   protected confirmEliminar = signal<number | null>(null);
 
@@ -50,6 +58,8 @@ export class AdminUsuarios implements OnInit {
       error: () => { this.error.set('Error al cargar usuarios'); this.cargando.set(false); }
     });
   }
+
+  // ── Modal editar / crear ──────────────────────────────────────────────────
 
   protected abrirCrear() {
     this.modoEditar.set(false);
@@ -109,6 +119,48 @@ export class AdminUsuarios implements OnInit {
     }
   }
 
+  // ── Modal cambio de contraseña ────────────────────────────────────────────
+
+  protected abrirCambioContrasena(u: Usuario) {
+    this.usuarioContrasena.set(u);
+    this.nuevaContrasena.set('');
+    this.confirmarContrasena.set('');
+    this.errorContrasena.set('');
+    this.modalContrasenaAbierto.set(true);
+  }
+
+  protected cerrarModalContrasena() {
+    this.modalContrasenaAbierto.set(false);
+    this.errorContrasena.set('');
+  }
+
+  protected guardarContrasena() {
+    const nueva     = this.nuevaContrasena().trim();
+    const confirmar = this.confirmarContrasena().trim();
+
+    if (!nueva)              { this.errorContrasena.set('La contraseña no puede estar vacía'); return; }
+    if (nueva.length < 6)   { this.errorContrasena.set('Mínimo 6 caracteres'); return; }
+    if (nueva !== confirmar) { this.errorContrasena.set('Las contraseñas no coinciden'); return; }
+
+    this.guardandoContrasena.set(true);
+    this.errorContrasena.set('');
+
+    this.usuariosService.resetContrasena(this.usuarioContrasena()!.codigo_usuario, nueva).subscribe({
+      next: () => {
+        this.exito.set(`Contraseña de ${this.usuarioContrasena()!.correo} actualizada`);
+        this.cerrarModalContrasena();
+        this.guardandoContrasena.set(false);
+        setTimeout(() => this.exito.set(''), 3000);
+      },
+      error: (err) => {
+        this.errorContrasena.set(err.error?.mensaje || 'Error al actualizar la contraseña');
+        this.guardandoContrasena.set(false);
+      }
+    });
+  }
+
+  // ── Eliminar ──────────────────────────────────────────────────────────────
+
   protected pedirConfirmEliminar(id: number) { this.confirmEliminar.set(id); }
 
   protected eliminar(id: number) {
@@ -118,9 +170,19 @@ export class AdminUsuarios implements OnInit {
     });
   }
 
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
   protected rolBadgeClass(rol: string): string {
     if (rol === 'superadmin') return 'bg-purple-900/50 text-purple-400 border border-purple-700';
-    if (rol === 'admin') return 'bg-blue-900/50 text-blue-400 border border-blue-700';
+    if (rol === 'admin')      return 'bg-blue-900/50 text-blue-400 border border-blue-700';
     return 'bg-slate-700 text-slate-400 border border-slate-600';
+  }
+
+  protected puedeResetear(u: Usuario): boolean {
+    const yo = this.authService.getUsuario()!;
+    if (u.codigo_usuario === yo.codigo_usuario) return false;
+    if (yo.rol === 'superadmin') return u.rol !== 'superadmin';
+    if (yo.rol === 'admin')      return u.rol === 'usuario';
+    return false;
   }
 }
