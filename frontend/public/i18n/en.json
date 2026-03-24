@@ -51,7 +51,14 @@
     "codigoBarras": "Barcode",
     "nroSalida": "Output",
     "empresa": "Company",
-    "fecha": "Date"
+    "fecha": "Date",
+    "editar": "Edit",
+    "eliminar": "Delete",
+    "confirmarEliminar": "Delete this record?",
+    "editarTitulo": "Edit record",
+    "guardando": "Saving...",
+    "cancelar": "Cancel",
+    "acciones": "Actions"
   },
   "estadisticas": {
     "titulo": "Statistics",
@@ -173,7 +180,7 @@
   },
   "roles": {
     "usuario": "user",
-    "admin": "admin", 
+    "admin": "admin",
     "superadmin": "superadmin"
   }
 }

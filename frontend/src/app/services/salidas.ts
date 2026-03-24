@@ -28,6 +28,12 @@ export class Salidas {
   buscarPorCodigoBarras(codigo_barras: string) {
     return this.http.get<{ salidas: Salida[] }>(`${this.apiUrl}/salidas/buscar/${codigo_barras}`);
   }
+  update(id: number, data: Partial<Salida>) {
+    return this.http.put<Salida>(`${this.apiUrl}/salidas/${id}`, data);
+  }
+  delete(id: number) {
+    return this.http.delete<void>(`${this.apiUrl}/salidas/${id}`);
+  }
   estadisticas(params?: { desde?: string; hasta?: string }) {
     return this.http.get<EstadisticasResponse>(`${this.apiUrl}/salidas/estadisticas`, {
       params: params as any,

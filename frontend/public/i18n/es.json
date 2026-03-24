@@ -51,7 +51,14 @@
     "codigoBarras": "Código barras",
     "nroSalida": "Salida",
     "empresa": "Empresa",
-    "fecha": "Fecha"
+    "fecha": "Fecha",
+    "editar": "Editar",
+    "eliminar": "Eliminar",
+    "confirmarEliminar": "¿Eliminar este registro?",
+    "editarTitulo": "Editar registro",
+    "guardando": "Guardando...",
+    "cancelar": "Cancelar",
+    "acciones": "Acciones"
   },
   "estadisticas": {
     "titulo": "Estadísticas",
@@ -173,7 +180,7 @@
   },
   "roles": {
     "usuario": "usuario",
-    "admin": "admin", 
+    "admin": "admin",
     "superadmin": "superadmin"
   }
 }

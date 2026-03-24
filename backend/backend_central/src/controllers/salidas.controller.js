@@ -212,6 +212,61 @@ export const create = async (req, res) => {
   }
 };
 
+// Actualiza los campos editables de una salida
+// Accesible para admin y superadmin (soloAdmin en rutas)
+export const update = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { codigo_barras, nro_salida, fecha_salida } = req.body;
+
+    const [rows] = await pool.query(
+      "SELECT codigo, codigo_empresa FROM salidas WHERE codigo = ? LIMIT 1",
+      [id]
+    );
+
+    if (rows.length === 0)
+      return res.status(404).json({ mensaje: "Salida no encontrada" });
+
+    // El admin solo puede editar salidas de su empresa
+    if (req.usuario.rol === "admin") {
+      if (rows[0].codigo_empresa !== req.usuario.codigo_empresa)
+        return res.status(403).json({ mensaje: "No tienes acceso a esta salida" });
+    }
+
+    const campos = [];
+    const params = [];
+
+    if (codigo_barras !== undefined) { campos.push("codigo_barras = ?"); params.push(codigo_barras); }
+    if (nro_salida !== undefined)    { campos.push("nro_salida = ?");    params.push(nro_salida); }
+    if (fecha_salida !== undefined)  { campos.push("fecha_salida = ?");  params.push(fecha_salida); }
+
+    if (campos.length === 0)
+      return res.status(400).json({ mensaje: "No se enviaron campos a actualizar" });
+
+    params.push(id);
+
+    await pool.query(
+      `UPDATE salidas SET ${campos.join(", ")} WHERE codigo = ?`,
+      params
+    );
+
+    const [updated] = await pool.query(
+      `SELECT s.codigo, s.codigo_empresa, e.nombre AS nombre_empresa,
+              s.nro_salida, s.codigo_barras, s.fecha_salida
+       FROM salidas s
+       LEFT JOIN empresa e ON e.codigo = s.codigo_empresa
+       WHERE s.codigo = ?`,
+      [id]
+    );
+
+    return res.status(200).json(updated[0]);
+
+  } catch (err) {
+    console.error("Error en update salida:", err);
+    return res.status(500).json({ mensaje: "Error interno del servidor" });
+  }
+};
+
 // Elimina una salida por su id
 // Solo accesible para superadmin (controlado en las rutas)
 export const remove = async (req, res) => {
