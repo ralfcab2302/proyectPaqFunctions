@@ -1,10 +1,12 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
+import { TranslateModule } from '@ngx-translate/core';
+import { IdiomaService } from '../../services/idioma.service';
 
 @Component({
   selector: 'app-nabvar',
-  imports: [],
+  imports: [TranslateModule],
   templateUrl: './nabvar.html',
   styleUrl: './nabvar.css',
 })
@@ -15,9 +17,12 @@ export class Nabvar implements OnInit {
   protected correoUser = localStorage.getItem('usuario')
     ? JSON.parse(localStorage.getItem('usuario')!).correo
     : null;
+
   private authService = inject(AuthService);
   protected router = inject(Router);
-  protected rutaActual = signal('');
+  protected idiomaService = inject(IdiomaService);
+
+  protected rutaActual  = signal('');
   protected menuAbierto = signal(false);
 
   ngOnInit(): void {
@@ -33,6 +38,10 @@ export class Nabvar implements OnInit {
   cerrarSesion() {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  protected cambiarIdioma() {
+    this.idiomaService.toggleIdioma();
   }
 
   esSuperadmin() { return this.rolUser === 'superadmin'; }

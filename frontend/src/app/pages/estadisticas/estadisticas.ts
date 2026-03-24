@@ -3,15 +3,18 @@ import { Nabvar } from '../nabvar/nabvar';
 import { Salidas } from '../../services/salidas';
 import { EstadisticasResponse } from '../../models/models';
 import { AuthService } from '../../services/auth';
+import { TranslateModule } from '@ngx-translate/core';
+import { IdiomaService } from '../../services/idioma.service';
 
 @Component({
   selector: 'app-estadisticas',
-  imports: [Nabvar],
+  imports: [Nabvar,TranslateModule],
   templateUrl: './estadisticas.html',
 })
 export class Estadisticas implements OnInit, OnDestroy {
   private salidasService = inject(Salidas);
   private authService = inject(AuthService);
+  private idiomaService = inject(IdiomaService);
 
   protected rolUser = this.authService.getUsuario()?.rol;
 

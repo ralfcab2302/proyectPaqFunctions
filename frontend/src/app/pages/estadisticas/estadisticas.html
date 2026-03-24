@@ -3,11 +3,10 @@
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
 
-    <!-- Header -->
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="text-2xl font-bold text-white">Estadísticas</h1>
-        <p class="text-slate-500 text-sm mt-1">Análisis de actividad por periodo</p>
+        <h1 class="text-2xl font-bold text-white">{{ 'estadisticas.titulo' | translate }}</h1>
+        <p class="text-slate-500 text-sm mt-1">{{ 'estadisticas.subtitulo' | translate }}</p>
       </div>
     </div>
 
@@ -15,12 +14,12 @@
     <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 mb-6">
       <div class="flex flex-wrap items-end gap-4">
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Desde</label>
+          <label class="block text-xs text-slate-400 mb-1">{{ 'comun.desde' | translate }}</label>
           <input type="date" [value]="desde()" (change)="desde.set($any($event.target).value)"
             class="bg-slate-700 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500" />
         </div>
         <div>
-          <label class="block text-xs text-slate-400 mb-1">Hasta</label>
+          <label class="block text-xs text-slate-400 mb-1">{{ 'comun.hasta' | translate }}</label>
           <input type="date" [value]="hasta()" (change)="hasta.set($any($event.target).value)"
             class="bg-slate-700 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500" />
         </div>
@@ -33,47 +32,47 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
             </svg>
           }
-          Aplicar
+          {{ 'estadisticas.aplicar' | translate }}
         </button>
         <button (click)="resetear()"
           class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg transition-colors">
-          Últimos 30 días
+          {{ 'estadisticas.resetear' | translate }}
         </button>
       </div>
     </div>
 
     @if (cargando()) {
-      <div class="text-center text-slate-500 py-20">Cargando estadísticas...</div>
+      <div class="text-center text-slate-500 py-20">{{ 'estadisticas.cargando' | translate }}</div>
     } @else {
 
       <!-- Cards resumen -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
-          <p class="text-slate-500 text-xs mb-1">Total salidas</p>
+          <p class="text-slate-500 text-xs mb-1">{{ 'estadisticas.totalSalidas' | translate }}</p>
           <h3 class="text-3xl font-bold text-white">{{ totalPeriodo() }}</h3>
-          <p class="text-slate-600 text-xs mt-1">en el periodo</p>
+          <p class="text-slate-600 text-xs mt-1">{{ 'estadisticas.enElPeriodo' | translate }}</p>
         </div>
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
-          <p class="text-slate-500 text-xs mb-1">Empresas activas</p>
+          <p class="text-slate-500 text-xs mb-1">{{ 'estadisticas.empresasActivas' | translate }}</p>
           <h3 class="text-3xl font-bold text-white">{{ totalEmpresas() }}</h3>
-          <p class="text-slate-600 text-xs mt-1">con actividad</p>
+          <p class="text-slate-600 text-xs mt-1">{{ 'estadisticas.conActividad' | translate }}</p>
         </div>
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
-          <p class="text-slate-500 text-xs mb-1">Promedio diario</p>
+          <p class="text-slate-500 text-xs mb-1">{{ 'estadisticas.promedioDiario' | translate }}</p>
           <h3 class="text-3xl font-bold text-white">{{ promediodiario() }}</h3>
-          <p class="text-slate-600 text-xs mt-1">salidas/día</p>
+          <p class="text-slate-600 text-xs mt-1">{{ 'estadisticas.salidasDia' | translate }}</p>
         </div>
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
-          <p class="text-slate-500 text-xs mb-1">Top empresa</p>
+          <p class="text-slate-500 text-xs mb-1">{{ 'estadisticas.topEmpresa' | translate }}</p>
           <h3 class="text-lg font-bold text-blue-400 mt-1 truncate">{{ topEmpresa() }}</h3>
-          <p class="text-slate-600 text-xs mt-1">más activa</p>
+          <p class="text-slate-600 text-xs mt-1">{{ 'estadisticas.masActiva' | translate }}</p>
         </div>
       </div>
 
-      <!-- Gráfico línea temporal (ancho completo) -->
+      <!-- Gráfico línea temporal -->
       <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 mb-6">
-        <h2 class="text-white font-semibold mb-1">Evolución temporal</h2>
-        <p class="text-slate-500 text-xs mb-4">Salidas por día en el periodo seleccionado</p>
+        <h2 class="text-white font-semibold mb-1">{{ 'estadisticas.evolucionTemporal' | translate }}</h2>
+        <p class="text-slate-500 text-xs mb-4">{{ 'estadisticas.salidasPorDia' | translate }}</p>
         <div style="height: 200px; position: relative;">
           <canvas id="chart-linea"></canvas>
         </div>
@@ -82,15 +81,15 @@
       <!-- Barras por empresa + Donut por salida -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6">
-          <h2 class="text-white font-semibold mb-1">Salidas por empresa</h2>
-          <p class="text-slate-500 text-xs mb-4">Ordenadas de mayor a menor</p>
+          <h2 class="text-white font-semibold mb-1">{{ 'estadisticas.salidasPorEmpresa' | translate }}</h2>
+          <p class="text-slate-500 text-xs mb-4">{{ 'estadisticas.ordenadas' | translate }}</p>
           <div style="height: 320px; position: relative;">
             <canvas id="chart-barras"></canvas>
           </div>
         </div>
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6">
-          <h2 class="text-white font-semibold mb-1">Distribución por nº de salida</h2>
-          <p class="text-slate-500 text-xs mb-4">Volumen por cada salida física</p>
+          <h2 class="text-white font-semibold mb-1">{{ 'estadisticas.distribucionNroSalida' | translate }}</h2>
+          <p class="text-slate-500 text-xs mb-4">{{ 'estadisticas.volumenPorSalida' | translate }}</p>
           <div style="height: 320px; position: relative;">
             <canvas id="chart-donut"></canvas>
           </div>
@@ -99,8 +98,8 @@
 
       <!-- Top 10 empresas -->
       <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6">
-        <h2 class="text-white font-semibold mb-1">Top 10 empresas</h2>
-        <p class="text-slate-500 text-xs mb-4">Las 10 empresas con más actividad en el periodo</p>
+        <h2 class="text-white font-semibold mb-1">{{ 'estadisticas.top10' | translate }}</h2>
+        <p class="text-slate-500 text-xs mb-4">{{ 'estadisticas.top10Subtitulo' | translate }}</p>
         <div style="height: 200px; position: relative;">
           <canvas id="chart-top"></canvas>
         </div>

@@ -4,16 +4,19 @@ import { Usuarios } from '../../../services/usuarios';
 import { EmpresaService } from '../../../services/empresa';
 import { Usuario, Empresa } from '../../../models/models';
 import { AuthService } from '../../../services/auth';
+import { TranslateModule } from '@ngx-translate/core';
+import { IdiomaService } from '../../../services/idioma.service';
 
 @Component({
   selector: 'app-admin-usuarios',
-  imports: [Nabvar],
+  imports: [Nabvar, TranslateModule],
   templateUrl: './usuarios.html',
 })
 export class AdminUsuarios implements OnInit {
   private usuariosService = inject(Usuarios);
   private empresaService  = inject(EmpresaService);
   private authService     = inject(AuthService);
+  private idiomaService   = inject(IdiomaService);
 
   protected usuarios  = signal<Usuario[]>([]);
   protected empresas  = signal<Empresa[]>([]);
@@ -52,9 +55,17 @@ export class AdminUsuarios implements OnInit {
   }
 
   private cargar() {
+    console.log('👥 AdminUsuarios cargar() - Iniciando carga de usuarios');
+    console.log('👥 Idioma actual en cargar():', this.idiomaService.idiomaActual());
+    
     this.cargando.set(true);
     this.usuariosService.getAll().subscribe({
-      next: (res) => { this.usuarios.set(res.usuarios); this.cargando.set(false); },
+      next: (res) => { 
+        console.log('👥 Usuarios recibidos:', res.usuarios.length);
+        this.usuarios.set(res.usuarios); 
+        this.cargando.set(false); 
+        console.log('👥 cargar() completado');
+      },
       error: () => { this.error.set('Error al cargar usuarios'); this.cargando.set(false); }
     });
   }

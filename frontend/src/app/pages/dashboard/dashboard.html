@@ -5,9 +5,9 @@
     <!-- Bienvenida -->
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-white">
-        Bienvenido, <span class="text-blue-400">{{ correoUser?.split('@')[0] }}</span>
+        {{ 'dashboard.bienvenido' | translate }}, <span class="text-blue-400">{{ correoUser?.split('@')[0] }}</span>
       </h1>
-      <p class="text-slate-500 mt-1 text-sm">Panel de control de PaqTracer</p>
+      <p class="text-slate-500 mt-1 text-sm">{{ 'dashboard.subtitulo' | translate }}</p>
     </div>
 
     <!-- Cards -->
@@ -19,10 +19,10 @@
           </svg>
         </div>
         <div>
-          <p class="text-slate-400 text-xs">Total paquetes</p>
+          <p class="text-slate-400 text-xs">{{ 'dashboard.totalPaquetes' | translate }}</p>
           <h3 class="text-2xl font-bold text-white mt-0.5">{{ totalSalidas() }}</h3>
         </div>
-        <span class="ml-auto text-xs text-green-400 bg-green-400/10 px-2 py-1 rounded-full self-start">activo</span>
+        <span class="ml-auto text-xs text-green-400 bg-green-400/10 px-2 py-1 rounded-full self-start">{{ 'dashboard.activo' | translate }}</span>
       </div>
       <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 hover:border-blue-500 transition-colors duration-200 flex items-center gap-4">
         <div class="p-3 bg-purple-500/10 rounded-xl shrink-0">
@@ -31,10 +31,10 @@
           </svg>
         </div>
         <div>
-          <p class="text-slate-400 text-xs">Paquetes hoy</p>
+          <p class="text-slate-400 text-xs">{{ 'dashboard.paquetesHoy' | translate }}</p>
           <h3 class="text-2xl font-bold text-white mt-0.5">{{ totalHoy() }}</h3>
         </div>
-        <span class="ml-auto text-xs text-slate-400 bg-slate-700 px-2 py-1 rounded-full self-start">hoy</span>
+        <span class="ml-auto text-xs text-slate-400 bg-slate-700 px-2 py-1 rounded-full self-start">{{ 'dashboard.hoy' | translate }}</span>
       </div>
       @if (rolUser === 'superadmin') {
       <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 hover:border-blue-500 transition-colors duration-200 flex items-center gap-4">
@@ -44,10 +44,10 @@
           </svg>
         </div>
         <div>
-          <p class="text-slate-400 text-xs">Empresas registradas</p>
+          <p class="text-slate-400 text-xs">{{ 'dashboard.empresasRegistradas' | translate }}</p>
           <h3 class="text-2xl font-bold text-white mt-0.5">{{ totalEmpresas() }}</h3>
         </div>
-        <span class="ml-auto text-xs text-green-400 bg-green-400/10 px-2 py-1 rounded-full self-start">activo</span>
+        <span class="ml-auto text-xs text-green-400 bg-green-400/10 px-2 py-1 rounded-full self-start">{{ 'dashboard.activo' | translate }}</span>
       </div>
       }
     </div>
@@ -57,23 +57,23 @@
       @if (rolUser === 'superadmin') {
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6">
-          <h2 class="text-white font-semibold mb-1">Paquetes por empresa</h2>
-          <p class="text-slate-500 text-xs mb-4">Distribución total acumulada</p>
+          <h2 class="text-white font-semibold mb-1">{{ 'dashboard.paquetesPorEmpresa' | translate }}</h2>
+          <p class="text-slate-500 text-xs mb-4">{{ 'dashboard.distribucionTotal' | translate }}</p>
           <div style="height: 220px; position: relative;">
             <canvas id="chart-donut"></canvas>
           </div>
         </div>
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6">
-          <h2 class="text-white font-semibold mb-1">Salidas totales por fecha</h2>
-          <p class="text-slate-500 text-xs mb-4">Últimos 30 días</p>
+          <h2 class="text-white font-semibold mb-1">{{ 'dashboard.salidasPorFecha' | translate }}</h2>
+          <p class="text-slate-500 text-xs mb-4">{{ 'dashboard.ultimos30dias' | translate }}</p>
           <div style="height: 220px; position: relative;">
             <canvas id="chart-line"></canvas>
           </div>
         </div>
       </div>
       <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 mb-4">
-        <h2 class="text-white font-semibold mb-1">Salidas por empresa — hoy</h2>
-        <p class="text-slate-500 text-xs mb-4">Comparativa de actividad del día</p>
+        <h2 class="text-white font-semibold mb-1">{{ 'dashboard.salidasHoy' | translate }}</h2>
+        <p class="text-slate-500 text-xs mb-4">{{ 'dashboard.comparativaHoy' | translate }}</p>
         @if (hayDayos()) {
         <div style="height: 180px; position: relative;">
           <canvas id="chart-column"></canvas>
@@ -83,7 +83,7 @@
           <svg class="w-10 h-10 mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6M3 21h18M3 10l9-7 9 7" />
           </svg>
-          <p class="text-sm">Sin actividad registrada hoy</p>
+          <p class="text-sm">{{ 'dashboard.sinActividad' | translate }}</p>
         </div>
         }
       </div>
@@ -94,10 +94,9 @@
     <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6">
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h2 class="text-white font-semibold">Últimas salidas</h2>
-          <p class="text-slate-500 text-xs mt-0.5">{{ aregloSalida().length }} registros mostrados</p>
+          <h2 class="text-white font-semibold">{{ 'dashboard.ultimasSalidas' | translate }}</h2>
+          <p class="text-slate-500 text-xs mt-0.5">{{ aregloSalida().length }} {{ 'dashboard.registrosMostrados' | translate }}</p>
         </div>
-        <!-- Botones exportar -->
         <div class="flex gap-2">
           <button (click)="exportarExcel()"
             class="flex items-center gap-1.5 text-xs bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg transition-colors">
@@ -119,26 +118,26 @@
       <!-- Filtros -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         <div>
-          <label class="text-xs text-slate-400 mb-1 block">Desde</label>
+          <label class="text-xs text-slate-400 mb-1 block">{{ 'comun.desde' | translate }}</label>
           <input type="date" [value]="filtroDesde()" (change)="filtroDesde.set($any($event.target).value)"
             class="w-full bg-slate-700 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500" />
         </div>
         <div>
-          <label class="text-xs text-slate-400 mb-1 block">Hasta</label>
+          <label class="text-xs text-slate-400 mb-1 block">{{ 'comun.hasta' | translate }}</label>
           <input type="date" [value]="filtroHasta()" (change)="filtroHasta.set($any($event.target).value)"
             class="w-full bg-slate-700 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500" />
         </div>
         <div>
-          <label class="text-xs text-slate-400 mb-1 block">Nº salida</label>
+          <label class="text-xs text-slate-400 mb-1 block">{{ 'dashboard.nroSalida' | translate }}</label>
           <input type="number" min="1" max="40" placeholder="1 - 40" [value]="filtroNroSalida()"
             (change)="filtroNroSalida.set($any($event.target).value)"
             class="w-full bg-slate-700 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 placeholder:text-slate-500" />
         </div>
         <div>
-          <label class="text-xs text-slate-400 mb-1 block">Empresa</label>
+          <label class="text-xs text-slate-400 mb-1 block">{{ 'comun.empresa' | translate }}</label>
           <select (change)="filtroEmpresa.set(+$any($event.target).value || null)"
             class="w-full bg-slate-700 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
-            <option value="">Todas</option>
+            <option value="">{{ 'dashboard.todas' | translate }}</option>
             @for (e of empresasSelect; track e.codigo) {
               <option [value]="e.codigo" [selected]="filtroEmpresa() === e.codigo">{{ e.nombre }}</option>
             }
@@ -146,7 +145,6 @@
         </div>
       </div>
 
-      <!-- Botones buscar/limpiar -->
       <div class="flex gap-3 mb-6">
         <button (click)="buscarConFiltros()"
           class="bg-blue-600 hover:bg-blue-500 text-white text-sm px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
@@ -157,25 +155,24 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           }
-          Buscar
+          {{ 'comun.buscar' | translate }}
         </button>
         <button (click)="limpiarFiltros()"
           class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-4 py-2 rounded-lg transition-colors">
-          Limpiar
+          {{ 'comun.limpiar' | translate }}
         </button>
       </div>
 
-      <!-- Tabla resultados -->
       @if (aregloSalida().length > 0) {
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-slate-700">
-              <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wide">Código</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wide">Código barras</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wide">Salida</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wide">Empresa</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wide">Fecha</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wide">{{ 'dashboard.codigo' | translate }}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wide">{{ 'dashboard.codigoBarras' | translate }}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wide">{{ 'dashboard.salida' | translate }}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wide">{{ 'comun.empresa' | translate }}</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wide">{{ 'comun.fecha' | translate }}</th>
             </tr>
           </thead>
           <tbody>
@@ -196,7 +193,7 @@
         <svg class="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10" />
         </svg>
-        <p class="text-sm">No se encontraron resultados</p>
+        <p class="text-sm">{{ 'comun.sinResultados' | translate }}</p>
       </div>
       }
     </div>

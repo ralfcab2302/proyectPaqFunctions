@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal, effect } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { AuthService } from '../../services/auth';
 import { Router } from '@angular/router';
@@ -7,10 +7,12 @@ import { Salidas } from '../../services/salidas';
 import { Salida, EstadisticasResponse } from '../../models/models';
 import { EmpresaService } from '../../services/empresa';
 import { ExportService } from '../../services/export';
+import { TranslateModule } from '@ngx-translate/core';
+import { IdiomaService } from '../../services/idioma.service';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [Nabvar, DatePipe],
+  imports: [Nabvar, DatePipe, TranslateModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -20,36 +22,35 @@ export class Dashboard implements OnInit, OnDestroy {
   protected correoUser = localStorage.getItem('usuario')
     ? JSON.parse(localStorage.getItem('usuario')!).correo : null;
 
-  private authService = inject(AuthService);
-  private router = inject(Router);
-  private salidas = inject(Salidas);
-  private empresas = inject(EmpresaService);
+  private authService  = inject(AuthService);
+  private router       = inject(Router);
+  private salidas      = inject(Salidas);
+  private empresas     = inject(EmpresaService);
   private exportService = inject(ExportService);
+  private idiomaService = inject(IdiomaService);
 
-  protected totalSalidas = signal(0);
-  protected aregloSalida = signal<Salida[]>([]);
+  protected totalSalidas  = signal(0);
+  protected aregloSalida  = signal<Salida[]>([]);
   protected totalEmpresas = signal(0);
-  protected totalHoy = signal(0);
-  protected totalMes = signal(0);
-  protected hayDayos = signal(false);
+  protected totalHoy      = signal(0);
+  protected totalMes      = signal(0);
+  protected hayDayos      = signal(false);
   cargando = signal(true);
 
-  // Filtros tabla
-  protected filtroDesde = signal('');
-  protected filtroHasta = signal('');
-  protected filtroNroSalida = signal('');
-  protected filtroEmpresa = signal<number | null>(null);
-  protected cargandoFiltro = signal(false);
+  protected filtroDesde      = signal('');
+  protected filtroHasta      = signal('');
+  protected filtroNroSalida  = signal('');
+  protected filtroEmpresa    = signal<number | null>(null);
+  protected cargandoFiltro   = signal(false);
   protected empresasSelect: { codigo: number; nombre: string }[] = [];
 
-  // Instancias Chart.js
-  private chartDonut: any = null;
-  private chartLine: any = null;
+  private chartDonut:  any = null;
+  private chartLine:   any = null;
   private chartColumn: any = null;
 
   private readonly COLORES = [
-    '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4',
-    '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16', '#a855f7',
+    '#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4',
+    '#ec4899','#14b8a6','#f97316','#6366f1','#84cc16','#a855f7',
   ];
 
   cerrarSesion() {
@@ -58,9 +59,12 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    console.log('📊 Dashboard ngOnInit - Iniciando componente');
+    console.log('📊 Idioma actual en dashboard:', this.idiomaService.idiomaActual());
+    
     const hoy = new Date();
     const inicioHoy = hoy.toISOString().slice(0, 10) + ' 00:00:00';
-    const finHoy = hoy.toISOString().slice(0, 10) + ' 23:59:59';
+    const finHoy    = hoy.toISOString().slice(0, 10) + ' 23:59:59';
     const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
       .toISOString().slice(0, 10) + ' 00:00:00';
 
@@ -86,9 +90,9 @@ export class Dashboard implements OnInit, OnDestroy {
     });
 
     this.cargarSelectEmpresas();
+    
+    console.log('📊 Dashboard ngOnInit completado');
   }
-
-  // ── Filtros ──────────────────────────────────────────────────────
 
   protected buscarConFiltros() {
     this.cargandoFiltro.set(true);
@@ -96,10 +100,10 @@ export class Dashboard implements OnInit, OnDestroy {
     if (contenedor) contenedor.style.display = 'none';
 
     const params: any = {};
-    if (this.filtroDesde()) params.desde = this.filtroDesde() + ' 00:00:00';
-    if (this.filtroHasta()) params.hasta = this.filtroHasta() + ' 23:59:59';
-    if (this.filtroNroSalida()) params.nro_salida = Number(this.filtroNroSalida());
-    if (this.filtroEmpresa()) params.codigo_empresa = this.filtroEmpresa();
+    if (this.filtroDesde())     params.desde         = this.filtroDesde() + ' 00:00:00';
+    if (this.filtroHasta())     params.hasta         = this.filtroHasta() + ' 23:59:59';
+    if (this.filtroNroSalida()) params.nro_salida    = Number(this.filtroNroSalida());
+    if (this.filtroEmpresa())   params.codigo_empresa = this.filtroEmpresa();
 
     this.salidas.getAll(params).subscribe({
       next: (data) => { this.aregloSalida.set(data.salidas); this.cargandoFiltro.set(false); },
@@ -119,8 +123,6 @@ export class Dashboard implements OnInit, OnDestroy {
     });
   }
 
-  // ── Exportación ──────────────────────────────────────────────────
-
   protected exportarExcel() {
     this.exportService.exportarExcel(this.aregloSalida(), 'paqtracer_salidas');
   }
@@ -128,8 +130,6 @@ export class Dashboard implements OnInit, OnDestroy {
   protected exportarPDF() {
     this.exportService.exportarPDF(this.aregloSalida(), 'paqtracer_salidas');
   }
-
-  // ── Gráficos Chart.js ────────────────────────────────────────────
 
   private cargarGraficos(inicioHoy: string, finHoy: string) {
     this.salidas.estadisticas().subscribe({
@@ -217,8 +217,8 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.chartDonut) this.chartDonut.destroy();
-    if (this.chartLine) this.chartLine.destroy();
+    if (this.chartDonut)  this.chartDonut.destroy();
+    if (this.chartLine)   this.chartLine.destroy();
     if (this.chartColumn) this.chartColumn.destroy();
   }
 }

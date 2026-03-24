@@ -2,15 +2,18 @@ import { Component, inject, signal } from '@angular/core';
 import { Nabvar } from '../nabvar/nabvar';
 import { Salidas } from '../../services/salidas';
 import { Salida } from '../../models/models';
+import { TranslateModule } from '@ngx-translate/core';
+import { IdiomaService } from '../../services/idioma.service';
 
 @Component({
   selector: 'app-busqueda',
-  imports: [Nabvar],
+  imports: [Nabvar, TranslateModule],
   templateUrl: './busqueda.html',
   styleUrl: './busqueda.css',
 })
 export class Busqueda {
   private salidas = inject(Salidas);
+  private idiomaService = inject(IdiomaService);
 
   protected codigo = signal('');
   protected cargando = signal(false);

@@ -14,11 +14,17 @@
         <span class="text-xs text-blue-400 font-medium uppercase tracking-wide">{{ rolUser }}</span>
       </div>
 
+      <!-- Selector de idioma -->
+      <button (click)="cambiarIdioma()"
+        class="text-sm bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition-all">
+        {{ idiomaService.idiomaActual() === 'es' ? '🇬🇧 EN' : '🇪🇸 ES' }}
+      </button>
+
       <!-- Dashboard -->
       @if (esAdmin() && !estaEn('/dashboard')) {
         <button (click)="router.navigate(['/dashboard'])"
           class="text-sm bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition-all">
-          Dashboard
+          {{ 'nav.dashboard' | translate }}
         </button>
       }
 
@@ -26,17 +32,9 @@
       @if (!estaEn('/busqueda')) {
         <button (click)="router.navigate(['/busqueda'])"
           class="text-sm bg-slate-700 hover:bg-green-600 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition-all">
-          Búsqueda
+          {{ 'nav.busqueda' | translate }}
         </button>
       }
-
-      <!-- Estadísticas -->
-      <!-- @if (esAdmin() && !estaEn('/estadisticas')) {
-        <button (click)="router.navigate(['/estadisticas'])"
-          class="text-sm bg-slate-700 hover:bg-purple-600 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition-all">
-          Estadísticas
-        </button>
-      } -->
 
       <!-- Admin menú -->
       @if (esAdmin()) {
@@ -52,12 +50,12 @@
             <div class="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50">
               <button (click)="router.navigate(['/admin/usuarios'])"
                 class="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-t-xl transition-colors">
-                Gestión de usuarios
+                {{ 'usuarios.titulo' | translate }}
               </button>
               @if (esSuperadmin()) {
                 <button (click)="router.navigate(['/admin/empresas'])"
                   class="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-slate-700 hover:text-white rounded-b-xl transition-colors">
-                  Gestión de empresas
+                  {{ 'empresas.titulo' | translate }}
                 </button>
               }
             </div>
@@ -68,13 +66,13 @@
       <!-- Perfil -->
       <button (click)="router.navigate(['/perfil'])"
         class="text-sm bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition-all">
-        Perfil
+        {{ 'nav.perfil' | translate }}
       </button>
 
       <!-- Salir -->
       <button (click)="cerrarSesion()"
         class="text-sm bg-slate-700 hover:bg-red-600 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition-all">
-        Salir
+        {{ 'nav.cerrarSesion' | translate }}
       </button>
     </div>
   </div>

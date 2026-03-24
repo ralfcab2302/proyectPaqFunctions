@@ -1,13 +1,16 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterModule, RouterOutlet } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterModule], // ⚡ Debe incluir RouterModule
+  imports: [RouterOutlet, RouterModule, TranslateModule],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
 })
-export class App {
-  protected readonly title = signal('frontend-angular');
+export class App implements OnInit {
+  ngOnInit() {
+    console.log(' App ngOnInit - Iniciando aplicación');
+  }
 }
