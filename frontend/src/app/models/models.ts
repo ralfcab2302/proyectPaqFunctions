@@ -17,6 +17,7 @@ export interface Salida {
   nombre_empresa: string;
   nro_salida: number;
   codigo_barras: string;
+  estado: 'distribuido' | 'descarte';
   fecha_salida: string;
 }
 export interface AuthResponse {
@@ -25,7 +26,9 @@ export interface AuthResponse {
 }
 export interface EstadisticasResponse {
   total: number;
+  porEstado: { estado: string; total: number }[];
   porSalida: { nro_salida: number; total: number }[];
   porEmpresa: { nombre_empresa: string; total: number }[];
+  porEmpresaEstado: { nombre_empresa: string; distribuidos: number; descartes: number; total: number }[];
   porDia: { dia: string; total: number }[];
 }

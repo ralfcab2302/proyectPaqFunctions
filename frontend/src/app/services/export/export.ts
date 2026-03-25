@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Salida } from '../models/models';
+import { Salida } from '../../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class ExportService {

@@ -1,14 +1,14 @@
-import { Component, inject, OnDestroy, OnInit, signal, effect } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { AuthService } from '../../services/auth';
+import { AuthService } from '../../services/auth/auth';
 import { Router } from '@angular/router';
 import { Nabvar } from '../nabvar/nabvar';
-import { Salidas } from '../../services/salidas';
+import { Salidas } from '../../services/salidas/salidas';
 import { Salida, EstadisticasResponse } from '../../models/models';
-import { EmpresaService } from '../../services/empresa';
-import { ExportService } from '../../services/export';
+import { EmpresaService } from '../../services/empresa/empresa';
+import { ExportService } from '../../services/export/export';
 import { TranslateModule } from '@ngx-translate/core';
-import { IdiomaService } from '../../services/idioma.service';
+import { IdiomaService } from '../../services/idioma/idioma.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,12 +22,12 @@ export class Dashboard implements OnInit, OnDestroy {
   protected correoUser = localStorage.getItem('usuario')
     ? JSON.parse(localStorage.getItem('usuario')!).correo : null;
 
-  private authService  = inject(AuthService);
-  private router       = inject(Router);
-  private salidas      = inject(Salidas);
-  private empresas     = inject(EmpresaService);
+  private authService   = inject(AuthService);
+  private router        = inject(Router);
+  private salidas       = inject(Salidas);
+  private empresas      = inject(EmpresaService);
   private exportService = inject(ExportService);
-  private idiomaService = inject(IdiomaService);
+  protected idiomaService = inject(IdiomaService);
 
   protected totalSalidas  = signal(0);
   protected aregloSalida  = signal<Salida[]>([]);
@@ -37,12 +37,19 @@ export class Dashboard implements OnInit, OnDestroy {
   protected hayDayos      = signal(false);
   cargando = signal(true);
 
-  protected filtroDesde      = signal('');
-  protected filtroHasta      = signal('');
-  protected filtroNroSalida  = signal('');
-  protected filtroEmpresa    = signal<number | null>(null);
-  protected cargandoFiltro   = signal(false);
+  // Filtros
+  protected filtroDesde     = signal('');
+  protected filtroHasta     = signal('');
+  protected filtroNroSalida = signal('');
+  protected filtroEmpresa   = signal<number | null>(null);
+  protected cargandoFiltro  = signal(false);
   protected empresasSelect: { codigo: number; nombre: string }[] = [];
+
+  // Paginación
+  protected paginaActual  = signal(1);
+  protected totalPaginas  = signal(1);
+  protected totalRegistros = signal(0);
+  private readonly LIMITE = 50;
 
   private chartDonut:  any = null;
   private chartLine:   any = null;
@@ -59,9 +66,6 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    console.log('📊 Dashboard ngOnInit - Iniciando componente');
-    console.log('📊 Idioma actual en dashboard:', this.idiomaService.idiomaActual());
-    
     const hoy = new Date();
     const inicioHoy = hoy.toISOString().slice(0, 10) + ' 00:00:00';
     const finHoy    = hoy.toISOString().slice(0, 10) + ' 23:59:59';
@@ -77,38 +81,69 @@ export class Dashboard implements OnInit, OnDestroy {
     this.empresas.getAll().subscribe({
       next: (data) => this.totalEmpresas.set(data.empresas.length),
     });
-    this.salidas.getAll().subscribe({
+
+    this.cargarPagina(1);
+    this.cargarSelectEmpresas();
+  }
+
+  // ── Paginación ────────────────────────────────────────────────────────────
+
+  private construirParams(pagina: number): any {
+    const params: any = { pagina, limite: this.LIMITE };
+    if (this.filtroDesde())     params.desde          = this.filtroDesde() + ' 00:00:00';
+    if (this.filtroHasta())     params.hasta          = this.filtroHasta() + ' 23:59:59';
+    if (this.filtroNroSalida()) params.nro_salida     = Number(this.filtroNroSalida());
+    if (this.filtroEmpresa())   params.codigo_empresa = this.filtroEmpresa();
+    return params;
+  }
+
+  private cargarPagina(pagina: number, mostrarSpinner = true) {
+    if (mostrarSpinner) this.cargandoFiltro.set(true);
+
+    this.salidas.getAll(this.construirParams(pagina)).subscribe({
       next: (data) => {
         this.totalSalidas.set(data.total);
+        this.totalRegistros.set(data.total);
+        this.totalPaginas.set(data.paginas);
+        this.paginaActual.set(data.pagina);
         this.aregloSalida.set(data.salidas);
         this.cargando.set(false);
-        if (this.rolUser === 'superadmin') {
+        this.cargandoFiltro.set(false);
+
+        if (pagina === 1 && this.rolUser === 'superadmin') {
+          const hoy = new Date();
+          const inicioHoy = hoy.toISOString().slice(0, 10) + ' 00:00:00';
+          const finHoy    = hoy.toISOString().slice(0, 10) + ' 23:59:59';
           setTimeout(() => this.cargarGraficos(inicioHoy, finHoy), 100);
         }
       },
-      error: (err) => { console.error(err); this.cargando.set(false); },
+      error: (err) => { console.error(err); this.cargando.set(false); this.cargandoFiltro.set(false); },
     });
-
-    this.cargarSelectEmpresas();
-    
-    console.log('📊 Dashboard ngOnInit completado');
   }
 
+  protected irAPagina(pagina: number) {
+    if (pagina < 1 || pagina > this.totalPaginas()) return;
+    this.cargarPagina(pagina);
+  }
+
+  protected get paginasVisibles(): number[] {
+    const total = this.totalPaginas();
+    const actual = this.paginaActual();
+    const rango = 2;
+    const paginas: number[] = [];
+
+    for (let i = Math.max(1, actual - rango); i <= Math.min(total, actual + rango); i++) {
+      paginas.push(i);
+    }
+    return paginas;
+  }
+
+  // ── Filtros ───────────────────────────────────────────────────────────────
+
   protected buscarConFiltros() {
-    this.cargandoFiltro.set(true);
     const contenedor = document.getElementById('graficos-container');
     if (contenedor) contenedor.style.display = 'none';
-
-    const params: any = {};
-    if (this.filtroDesde())     params.desde         = this.filtroDesde() + ' 00:00:00';
-    if (this.filtroHasta())     params.hasta         = this.filtroHasta() + ' 23:59:59';
-    if (this.filtroNroSalida()) params.nro_salida    = Number(this.filtroNroSalida());
-    if (this.filtroEmpresa())   params.codigo_empresa = this.filtroEmpresa();
-
-    this.salidas.getAll(params).subscribe({
-      next: (data) => { this.aregloSalida.set(data.salidas); this.cargandoFiltro.set(false); },
-      error: () => this.cargandoFiltro.set(false),
-    });
+    this.cargarPagina(1);
   }
 
   protected limpiarFiltros() {
@@ -118,10 +153,10 @@ export class Dashboard implements OnInit, OnDestroy {
     this.filtroEmpresa.set(null);
     const contenedor = document.getElementById('graficos-container');
     if (contenedor) contenedor.style.display = 'block';
-    this.salidas.getAll().subscribe({
-      next: (data) => this.aregloSalida.set(data.salidas),
-    });
+    this.cargarPagina(1);
   }
+
+  // ── Exportación ───────────────────────────────────────────────────────────
 
   protected exportarExcel() {
     this.exportService.exportarExcel(this.aregloSalida(), 'paqtracer_salidas');
@@ -130,6 +165,8 @@ export class Dashboard implements OnInit, OnDestroy {
   protected exportarPDF() {
     this.exportService.exportarPDF(this.aregloSalida(), 'paqtracer_salidas');
   }
+
+  // ── Gráficos ──────────────────────────────────────────────────────────────
 
   private cargarGraficos(inicioHoy: string, finHoy: string) {
     this.salidas.estadisticas().subscribe({

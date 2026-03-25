@@ -11,6 +11,7 @@ import { empresaRouter } from "./routes/empresa.routes.js";
 import { usuariosRouter } from "./routes/usuarios.routes.js";
 import { salidasRouter } from "./routes/salidas.routes.js";
 import { syncRouter } from "./routes/sync.routes.js";
+import { filtrosRouter } from "./routes/filtros.routes.js";
 import { datosSeeder } from "./seeders/datos.seeder.js";
 
 const server = express();
@@ -31,6 +32,7 @@ server.use("/api/auth", authRouter);
 server.use("/api/empresas", empresaRouter);
 server.use("/api/usuarios", usuariosRouter);
 server.use("/api/salidas", salidasRouter);
+server.use("/api/filtros", filtrosRouter);
 server.use("/api/sync", syncRouter);
 
 async function esperarMySQL(intentos = 15) {
@@ -44,7 +46,7 @@ async function esperarMySQL(intentos = 15) {
       console.log(`⏳ Esperando MySQL... intento ${i}/${intentos}`);
       await new Promise(r => setTimeout(r, 3000));
     }
-  } 
+  }
   console.error("❌ No se pudo conectar a MySQL");
   process.exit(1);
 }
@@ -53,7 +55,7 @@ async function arrancar() {
   await esperarMySQL();
   await initDB();
   await superadminSeeder();
-  await datosSeeder()
+  await datosSeeder();
 
   server.listen(3000, () => {
     console.log("🚀 Servidor en http://localhost:3000");
@@ -65,6 +67,10 @@ async function arrancar() {
     console.log("   GET    /api/salidas");
     console.log("   GET    /api/salidas/estadisticas");
     console.log("   GET    /api/salidas/buscar/:codigoBarras");
+    console.log("   GET    /api/filtros");
+    console.log("   POST   /api/filtros");
+    console.log("   PUT    /api/filtros/:id");
+    console.log("   DELETE /api/filtros/:id");
     console.log("   POST   /api/sync  (sync desde clientes)");
   });
 }

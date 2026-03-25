@@ -1,8 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { AuthService } from '../../services/auth';
+import { AuthService } from '../../services/auth/auth';
 import { TranslateModule } from '@ngx-translate/core';
-import { IdiomaService } from '../../services/idioma.service';
+import { IdiomaService } from '../../services/idioma/idioma.service';
 
 @Component({
   selector: 'app-nabvar',

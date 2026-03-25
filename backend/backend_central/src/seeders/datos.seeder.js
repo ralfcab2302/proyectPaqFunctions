@@ -62,6 +62,27 @@ const insertarSalidas = async (codigoEmpresa, cantidad, soloHoy = false) => {
   }
 };
 
+const insertarDescarte = async (codigoEmpresa) => {
+  await pool.query(
+    "INSERT INTO salidas (codigo_empresa, nro_salida, codigo_barras, estado, fecha_salida) VALUES (?, ?, ?, 'descarte', ?)",
+    [codigoEmpresa, 0, "DCT000000001", fechaAleatoria(true)]
+  );
+};
+
+const insertarFiltros = async (codigoEmpresa, slug) => {
+  const prefijos = [
+    { prefijo: slug.substring(0, 3).toUpperCase(), nro_salida: 1 },
+    { prefijo: "ESP",                               nro_salida: 2 },
+    { prefijo: "INT",                               nro_salida: 3 },
+  ];
+  for (const f of prefijos) {
+    await pool.query(
+      "INSERT INTO filtros (codigo_empresa, nro_salida, prefijo) VALUES (?, ?, ?)",
+      [codigoEmpresa, f.nro_salida, f.prefijo]
+    );
+  }
+};
+
 export async function datosSeeder() {
   const [existe] = await pool.query("SELECT codigo FROM empresa LIMIT 1");
   if (existe.length > 0) {
@@ -84,11 +105,13 @@ export async function datosSeeder() {
     await pool.query("INSERT INTO usuarios (codigo_empresa, correo, contrasena, rol) VALUES (?, ?, ?, ?)", [id, `usuario1@${slug}.com`, hashUsuario, "usuario"]);
     await pool.query("INSERT INTO usuarios (codigo_empresa, correo, contrasena, rol) VALUES (?, ?, ?, ?)", [id, `usuario2@${slug}.com`, hashUsuario, "usuario"]);
 
+    await insertarFiltros(id, slug);      // 3 filtros por empresa
     await insertarSalidas(id, 40);        // 40 aleatorias últimos 30 días
     await insertarSalidas(id, 10, true);  // 10 de hoy
+    await insertarDescarte(id);           // 1 descarte de hoy
 
     console.log(`✅ ${empresa.nombre}`);
   }
 
-  console.log("✅ Seeder completado — 25 empresas, 50 salidas cada una (10 de hoy)");
+  console.log("✅ Seeder completado — 25 empresas, 51 salidas cada una (10 de hoy + 1 descarte)");
 }

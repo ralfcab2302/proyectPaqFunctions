@@ -1,11 +1,11 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Nabvar } from '../../nabvar/nabvar';
-import { Usuarios } from '../../../services/usuarios';
-import { EmpresaService } from '../../../services/empresa';
+import { Usuarios } from '../../../services/usuarios/usuarios';
+import { EmpresaService } from '../../../services/empresa/empresa';
 import { Usuario, Empresa } from '../../../models/models';
-import { AuthService } from '../../../services/auth';
+import { AuthService } from '../../../services/auth/auth';
 import { TranslateModule } from '@ngx-translate/core';
-import { IdiomaService } from '../../../services/idioma.service';
+import { IdiomaService } from '../../../services/idioma/idioma.service';
 
 @Component({
   selector: 'app-admin-usuarios',

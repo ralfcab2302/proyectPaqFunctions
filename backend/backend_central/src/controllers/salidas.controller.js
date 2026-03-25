@@ -4,7 +4,7 @@ import { pool } from "../config/db.js";
 // Devuelve todas las salidas con filtros opcionales y paginación
 export const getAll = async (req, res) => {
   try {
-    const { nro_salida, codigo_barras, desde, hasta, codigo_empresa } = req.query;
+    const { nro_salida, codigo_barras, desde, hasta, codigo_empresa, estado } = req.query;
     const pagina = parseInt(req.query.pagina) || 1;
     const limite = parseInt(req.query.limite) || 50;
     const offset = (pagina - 1) * limite;
@@ -12,14 +12,11 @@ export const getAll = async (req, res) => {
     const condiciones = [];
     const params = [];
 
-    // El admin y usuario solo ven las salidas de su empresa
     if (req.empresaFiltro !== null) {
       condiciones.push("s.codigo_empresa = ?");
       params.push(req.empresaFiltro);
     }
 
-    // Filtros opcionales que llegan por query string
-    // Solo superadmin puede filtrar por empresa
     if (codigo_empresa && req.empresaFiltro === null) {
       condiciones.push("s.codigo_empresa = ?");
       params.push(parseInt(codigo_empresa));
@@ -41,18 +38,19 @@ export const getAll = async (req, res) => {
       condiciones.push("s.fecha_salida <= ?");
       params.push(hasta);
     }
+    if (estado && ["distribuido", "descarte"].includes(estado)) {
+      condiciones.push("s.estado = ?");
+      params.push(estado);
+    }
 
-    // Construimos el WHERE solo si hay condiciones
     const where = condiciones.length > 0 ? `WHERE ${condiciones.join(" AND ")}` : "";
 
-    // Primero contamos el total para calcular las páginas
     const [totales] = await pool.query(
       `SELECT COUNT(*) AS total FROM salidas s ${where}`,
       params
     );
     const total = totales[0].total;
 
-    // Luego traemos la página solicitada con el JOIN a empresa para el nombre
     const [rows] = await pool.query(
       `SELECT
          s.codigo,
@@ -60,6 +58,7 @@ export const getAll = async (req, res) => {
          e.nombre AS nombre_empresa,
          s.nro_salida,
          s.codigo_barras,
+         s.estado,
          s.fecha_salida
        FROM salidas s
        LEFT JOIN empresa e ON e.codigo = s.codigo_empresa
@@ -84,7 +83,6 @@ export const getAll = async (req, res) => {
 };
 
 // Devuelve una salida por su id
-// El admin y usuario solo pueden ver salidas de su empresa
 export const getById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -96,6 +94,7 @@ export const getById = async (req, res) => {
          e.nombre AS nombre_empresa,
          s.nro_salida,
          s.codigo_barras,
+         s.estado,
          s.fecha_salida
        FROM salidas s
        LEFT JOIN empresa e ON e.codigo = s.codigo_empresa
@@ -106,7 +105,6 @@ export const getById = async (req, res) => {
     if (rows.length === 0)
       return res.status(404).json({ mensaje: "Salida no encontrada" });
 
-    // Comprobamos que el usuario tenga acceso a esta salida
     if (req.usuario.rol !== "superadmin") {
       if (rows[0].codigo_empresa !== req.usuario.codigo_empresa)
         return res.status(403).json({ mensaje: "No tienes acceso a esta salida" });
@@ -121,7 +119,6 @@ export const getById = async (req, res) => {
 };
 
 // Busca todas las salidas de un código de barras concreto
-// Devuelve el historial completo ordenado por fecha descendente
 export const buscarPorCodigo = async (req, res) => {
   try {
     const { codigoBarras } = req.params;
@@ -129,7 +126,6 @@ export const buscarPorCodigo = async (req, res) => {
     const condiciones = ["s.codigo_barras = ?"];
     const params = [codigoBarras];
 
-    // El admin y usuario solo ven las de su empresa
     if (req.empresaFiltro !== null) {
       condiciones.push("s.codigo_empresa = ?");
       params.push(req.empresaFiltro);
@@ -144,6 +140,7 @@ export const buscarPorCodigo = async (req, res) => {
          e.nombre AS nombre_empresa,
          s.nro_salida,
          s.codigo_barras,
+         s.estado,
          s.fecha_salida
        FROM salidas s
        LEFT JOIN empresa e ON e.codigo = s.codigo_empresa
@@ -168,15 +165,13 @@ export const buscarPorCodigo = async (req, res) => {
 };
 
 // Registra una nueva salida manualmente
-// El admin usa siempre su empresa, el superadmin debe especificar codigo_empresa
 export const create = async (req, res) => {
   try {
-    const { nro_salida, codigo_barras, fecha_salida } = req.body;
+    const { nro_salida, codigo_barras, fecha_salida, estado } = req.body;
 
     if (!nro_salida || !codigo_barras)
       return res.status(400).json({ mensaje: "nro_salida y codigo_barras son obligatorios" });
 
-    // Determinamos la empresa según el rol del usuario
     let codigo_empresa;
     if (req.usuario.rol === "admin") {
       codigo_empresa = req.usuario.codigo_empresa;
@@ -186,13 +181,13 @@ export const create = async (req, res) => {
         return res.status(400).json({ mensaje: "codigo_empresa es obligatorio" });
     }
 
-    // Si no se pasa fecha usamos la actual
     const fecha = fecha_salida || new Date();
+    const estadoFinal = estado && ["distribuido", "descarte"].includes(estado) ? estado : "distribuido";
 
     const [result] = await pool.query(
-      `INSERT INTO salidas (codigo_empresa, nro_salida, codigo_barras, fecha_salida)
-       VALUES (?, ?, ?, ?)`,
-      [codigo_empresa, nro_salida, codigo_barras, fecha]
+      `INSERT INTO salidas (codigo_empresa, nro_salida, codigo_barras, estado, fecha_salida)
+       VALUES (?, ?, ?, ?, ?)`,
+      [codigo_empresa, nro_salida, codigo_barras, estadoFinal, fecha]
     );
 
     return res.status(201).json({
@@ -202,6 +197,7 @@ export const create = async (req, res) => {
         codigo_empresa,
         nro_salida,
         codigo_barras,
+        estado: estadoFinal,
         fecha_salida: fecha
       }
     });
@@ -213,11 +209,10 @@ export const create = async (req, res) => {
 };
 
 // Actualiza los campos editables de una salida
-// Accesible para admin y superadmin (soloAdmin en rutas)
 export const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { codigo_barras, nro_salida, fecha_salida } = req.body;
+    const { codigo_barras, nro_salida, fecha_salida, estado } = req.body;
 
     const [rows] = await pool.query(
       "SELECT codigo, codigo_empresa FROM salidas WHERE codigo = ? LIMIT 1",
@@ -227,7 +222,6 @@ export const update = async (req, res) => {
     if (rows.length === 0)
       return res.status(404).json({ mensaje: "Salida no encontrada" });
 
-    // El admin solo puede editar salidas de su empresa
     if (req.usuario.rol === "admin") {
       if (rows[0].codigo_empresa !== req.usuario.codigo_empresa)
         return res.status(403).json({ mensaje: "No tienes acceso a esta salida" });
@@ -239,20 +233,20 @@ export const update = async (req, res) => {
     if (codigo_barras !== undefined) { campos.push("codigo_barras = ?"); params.push(codigo_barras); }
     if (nro_salida !== undefined)    { campos.push("nro_salida = ?");    params.push(nro_salida); }
     if (fecha_salida !== undefined)  { campos.push("fecha_salida = ?");  params.push(fecha_salida); }
+    if (estado !== undefined && ["distribuido", "descarte"].includes(estado)) {
+      campos.push("estado = ?");
+      params.push(estado);
+    }
 
     if (campos.length === 0)
       return res.status(400).json({ mensaje: "No se enviaron campos a actualizar" });
 
     params.push(id);
-
-    await pool.query(
-      `UPDATE salidas SET ${campos.join(", ")} WHERE codigo = ?`,
-      params
-    );
+    await pool.query(`UPDATE salidas SET ${campos.join(", ")} WHERE codigo = ?`, params);
 
     const [updated] = await pool.query(
       `SELECT s.codigo, s.codigo_empresa, e.nombre AS nombre_empresa,
-              s.nro_salida, s.codigo_barras, s.fecha_salida
+              s.nro_salida, s.codigo_barras, s.estado, s.fecha_salida
        FROM salidas s
        LEFT JOIN empresa e ON e.codigo = s.codigo_empresa
        WHERE s.codigo = ?`,
@@ -267,8 +261,7 @@ export const update = async (req, res) => {
   }
 };
 
-// Elimina una salida por su id
-// Solo accesible para superadmin (controlado en las rutas)
+// Elimina una salida por su id — solo superadmin
 export const remove = async (req, res) => {
   try {
     const { id } = req.params;
@@ -291,8 +284,7 @@ export const remove = async (req, res) => {
   }
 };
 
-// Devuelve estadísticas de salidas agrupadas por salida, empresa y día
-// Los últimos 30 días se muestran agrupados por día para gráficas
+// Estadísticas con desglose por estado (distribuido / descarte)
 export const estadisticas = async (req, res) => {
   try {
     const { desde, hasta } = req.query;
@@ -315,22 +307,31 @@ export const estadisticas = async (req, res) => {
 
     const where = condiciones.length > 0 ? `WHERE ${condiciones.join(" AND ")}` : "";
 
-    // Total de registros con los filtros aplicados
+    // Total general
     const [totalRows] = await pool.query(
       `SELECT COUNT(*) AS total FROM salidas s ${where}`,
       params
     );
 
-    // Cuántos paquetes pasaron por cada salida física
+    // Desglose distribuido vs descarte
+    const [porEstado] = await pool.query(
+      `SELECT s.estado, COUNT(*) AS total
+       FROM salidas s ${where}
+       GROUP BY s.estado`,
+      params
+    );
+
+    // Por salida física (solo distribuidos para no distorsionar cintas)
     const [porSalida] = await pool.query(
       `SELECT s.nro_salida, COUNT(*) AS total
        FROM salidas s ${where}
+       ${condiciones.length > 0 ? "AND" : "WHERE"} s.estado = 'distribuido'
        GROUP BY s.nro_salida
        ORDER BY s.nro_salida ASC`,
       params
     );
 
-    // Cuántos paquetes registró cada empresa
+    // Por empresa
     const [porEmpresa] = await pool.query(
       `SELECT e.nombre AS nombre_empresa, COUNT(*) AS total
        FROM salidas s
@@ -341,7 +342,22 @@ export const estadisticas = async (req, res) => {
       params
     );
 
-    // Actividad día a día de los últimos 30 días (para gráfica de líneas)
+    // Por empresa desglosado (distribuido + descarte)
+    const [porEmpresaEstado] = await pool.query(
+      `SELECT
+         e.nombre AS nombre_empresa,
+         SUM(CASE WHEN s.estado = 'distribuido' THEN 1 ELSE 0 END) AS distribuidos,
+         SUM(CASE WHEN s.estado = 'descarte'    THEN 1 ELSE 0 END) AS descartes,
+         COUNT(*) AS total
+       FROM salidas s
+       LEFT JOIN empresa e ON e.codigo = s.codigo_empresa
+       ${where}
+       GROUP BY s.codigo_empresa
+       ORDER BY total DESC`,
+      params
+    );
+
+    // Actividad día a día últimos 30 días
     const [porDia] = await pool.query(
       `SELECT DATE(s.fecha_salida) AS dia, COUNT(*) AS total
        FROM salidas s ${where}
@@ -353,8 +369,10 @@ export const estadisticas = async (req, res) => {
 
     return res.status(200).json({
       total: totalRows[0].total,
+      porEstado,
       porSalida,
       porEmpresa,
+      porEmpresaEstado,
       porDia
     });
 

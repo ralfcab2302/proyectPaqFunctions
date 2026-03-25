@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { Nabvar } from '../nabvar/nabvar';
-import { Salidas } from '../../services/salidas';
+import { Salidas } from '../../services/salidas/salidas';
 import { Salida } from '../../models/models';
 import { TranslateModule } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';

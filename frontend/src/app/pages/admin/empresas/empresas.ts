@@ -1,9 +1,9 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Nabvar } from '../../nabvar/nabvar';
-import { EmpresaService } from '../../../services/empresa';
+import { EmpresaService } from '../../../services/empresa/empresa';
 import { Empresa } from '../../../models/models';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { IdiomaService } from '../../../services/idioma.service';
+import { IdiomaService } from '../../../services/idioma/idioma.service';
 
 @Component({
   selector: 'app-admin-empresas',

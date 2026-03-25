@@ -1,9 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { Nabvar } from '../nabvar/nabvar';
-import { AuthService } from '../../services/auth';
-import { Usuarios } from '../../services/usuarios';
+import { AuthService } from '../../services/auth/auth';
+import { Usuarios } from '../../services/usuarios/usuarios';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { IdiomaService } from '../../services/idioma.service';
+import { IdiomaService } from '../../services/idioma/idioma.service';
 
 @Component({
   selector: 'app-perfil',

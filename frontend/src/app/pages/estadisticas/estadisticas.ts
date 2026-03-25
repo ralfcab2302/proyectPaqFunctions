@@ -1,10 +1,10 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { Nabvar } from '../nabvar/nabvar';
-import { Salidas } from '../../services/salidas';
+import { Salidas } from '../../services/salidas/salidas';
 import { EstadisticasResponse } from '../../models/models';
-import { AuthService } from '../../services/auth';
+import { AuthService } from '../../services/auth/auth';
 import { TranslateModule } from '@ngx-translate/core';
-import { IdiomaService } from '../../services/idioma.service';
+import { IdiomaService } from '../../services/idioma/idioma.service';
 
 @Component({
   selector: 'app-estadisticas',

@@ -21,11 +21,21 @@ export async function initDB() {
       )
     `);
     await conn.query(`
+      CREATE TABLE IF NOT EXISTS filtros (
+        codigo          INT AUTO_INCREMENT PRIMARY KEY,
+        codigo_empresa  INT NOT NULL,
+        nro_salida      INT NOT NULL,
+        prefijo         VARCHAR(50) NOT NULL,
+        FOREIGN KEY (codigo_empresa) REFERENCES empresa(codigo) ON DELETE CASCADE
+      )
+    `);
+    await conn.query(`
       CREATE TABLE IF NOT EXISTS salidas (
         codigo          INT AUTO_INCREMENT PRIMARY KEY,
         codigo_empresa  INT NOT NULL,
         nro_salida      INT NOT NULL,
         codigo_barras   VARCHAR(100) NOT NULL,
+        estado          ENUM('distribuido', 'descarte') NOT NULL DEFAULT 'distribuido',
         fecha_salida    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (codigo_empresa) REFERENCES empresa(codigo) ON DELETE CASCADE
       )
