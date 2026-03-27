@@ -1,22 +1,21 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { Nabvar } from '../../nabvar/nabvar';
 import { Usuarios } from '../../../services/usuarios/usuarios';
 import { EmpresaService } from '../../../services/empresa/empresa';
 import { Usuario, Empresa } from '../../../models/models';
 import { AuthService } from '../../../services/auth/auth';
 import { TranslateModule } from '@ngx-translate/core';
-import { IdiomaService } from '../../../services/idioma/idioma.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-admin-usuarios',
-  imports: [Nabvar, TranslateModule],
+  imports: [Nabvar, TranslateModule, FormsModule],
   templateUrl: './usuarios.html',
 })
 export class AdminUsuarios implements OnInit {
   private usuariosService = inject(Usuarios);
   private empresaService  = inject(EmpresaService);
   private authService     = inject(AuthService);
-  private idiomaService   = inject(IdiomaService);
 
   protected usuarios  = signal<Usuario[]>([]);
   protected empresas  = signal<Empresa[]>([]);
@@ -24,6 +23,25 @@ export class AdminUsuarios implements OnInit {
   protected error     = signal('');
   protected exito     = signal('');
   protected rolActual = this.authService.getUsuario()?.rol;
+
+  // Filtros inline
+  protected filtroCorreo  = signal('');
+  protected filtroRol     = signal('');
+  protected filtroEmpresa = signal('');
+
+  protected usuariosFiltrados = computed(() => {
+    let lista = [...this.usuarios()];
+
+    const correo  = this.filtroCorreo().toLowerCase().trim();
+    const rol     = this.filtroRol();
+    const empresa = this.filtroEmpresa().toLowerCase().trim();
+
+    if (correo)  lista = lista.filter(u => u.correo.toLowerCase().includes(correo));
+    if (rol)     lista = lista.filter(u => u.rol === rol);
+    if (empresa) lista = lista.filter(u => (u.nombre_empresa || '').toLowerCase().includes(empresa));
+
+    return lista;
+  });
 
   // Modal editar / crear
   protected modalAbierto        = signal(false);
@@ -55,22 +73,12 @@ export class AdminUsuarios implements OnInit {
   }
 
   private cargar() {
-    console.log('👥 AdminUsuarios cargar() - Iniciando carga de usuarios');
-    console.log('👥 Idioma actual en cargar():', this.idiomaService.idiomaActual());
-    
     this.cargando.set(true);
     this.usuariosService.getAll().subscribe({
-      next: (res) => { 
-        console.log('👥 Usuarios recibidos:', res.usuarios.length);
-        this.usuarios.set(res.usuarios); 
-        this.cargando.set(false); 
-        console.log('👥 cargar() completado');
-      },
+      next: (res) => { this.usuarios.set(res.usuarios); this.cargando.set(false); },
       error: () => { this.error.set('Error al cargar usuarios'); this.cargando.set(false); }
     });
   }
-
-  // ── Modal editar / crear ──────────────────────────────────────────────────
 
   protected abrirCrear() {
     this.modoEditar.set(false);
@@ -94,10 +102,7 @@ export class AdminUsuarios implements OnInit {
     this.modalAbierto.set(true);
   }
 
-  protected cerrarModal() {
-    this.modalAbierto.set(false);
-    this.error.set('');
-  }
+  protected cerrarModal() { this.modalAbierto.set(false); this.error.set(''); }
 
   protected guardar() {
     const correo = this.formCorreo().trim();
@@ -130,8 +135,6 @@ export class AdminUsuarios implements OnInit {
     }
   }
 
-  // ── Modal cambio de contraseña ────────────────────────────────────────────
-
   protected abrirCambioContrasena(u: Usuario) {
     this.usuarioContrasena.set(u);
     this.nuevaContrasena.set('');
@@ -140,10 +143,7 @@ export class AdminUsuarios implements OnInit {
     this.modalContrasenaAbierto.set(true);
   }
 
-  protected cerrarModalContrasena() {
-    this.modalContrasenaAbierto.set(false);
-    this.errorContrasena.set('');
-  }
+  protected cerrarModalContrasena() { this.modalContrasenaAbierto.set(false); this.errorContrasena.set(''); }
 
   protected guardarContrasena() {
     const nueva     = this.nuevaContrasena().trim();
@@ -170,8 +170,6 @@ export class AdminUsuarios implements OnInit {
     });
   }
 
-  // ── Eliminar ──────────────────────────────────────────────────────────────
-
   protected pedirConfirmEliminar(id: number) { this.confirmEliminar.set(id); }
 
   protected eliminar(id: number) {
@@ -181,12 +179,10 @@ export class AdminUsuarios implements OnInit {
     });
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
-
   protected rolBadgeClass(rol: string): string {
-    if (rol === 'superadmin') return 'bg-purple-900/50 text-purple-400 border border-purple-700';
-    if (rol === 'admin')      return 'bg-blue-900/50 text-blue-400 border border-blue-700';
-    return 'bg-slate-700 text-slate-400 border border-slate-600';
+    if (rol === 'superadmin') return 'bg-purple-500/10 text-purple-400 border border-purple-500/20';
+    if (rol === 'admin')      return 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
+    return 'bg-white/[0.04] text-slate-400 border border-white/[0.08]';
   }
 
   protected puedeResetear(u: Usuario): boolean {

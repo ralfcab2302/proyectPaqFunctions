@@ -25,10 +25,11 @@ export async function sincronizar() {
       },
       body: JSON.stringify({
         codigo_empresa: CODIGO_EMPRESA,
-        salidas: salidasNuevas.map(salida => ({
-          nro_salida: salida.nro_salida,
-          codigo_barras: salida.codigo_barras,
-          fecha_salida: salida.fecha_salida
+        salidas: salidasNuevas.map(s => ({
+          nro_salida: s.nro_salida,
+          codigo_barras: s.codigo_barras,  // puede ser NULL
+          estado: s.estado,
+          fecha_salida: s.fecha_salida
         }))
       })
     });

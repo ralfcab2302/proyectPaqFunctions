@@ -1,5 +1,6 @@
 "use strict";
 import { pool } from "./db.js";
+
 export async function initDB() {
   const conn = await pool.getConnection();
   try {
@@ -32,10 +33,10 @@ export async function initDB() {
     await conn.query(`
       CREATE TABLE IF NOT EXISTS salidas (
         codigo          INT AUTO_INCREMENT PRIMARY KEY,
-        codigo_empresa  INT NOT NULL,
-        nro_salida      INT NOT NULL,
-        codigo_barras   VARCHAR(100) NOT NULL,
-        estado          ENUM('distribuido', 'descarte') NOT NULL DEFAULT 'distribuido',
+        codigo_empresa  INT NULL,
+        nro_salida      INT NOT NULL DEFAULT 0,
+        codigo_barras   VARCHAR(100) NULL,
+        estado          ENUM('distribuido','descarte_conocido','descarte_desconocido') NOT NULL DEFAULT 'distribuido',
         fecha_salida    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (codigo_empresa) REFERENCES empresa(codigo) ON DELETE CASCADE
       )

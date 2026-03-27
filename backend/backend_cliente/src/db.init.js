@@ -3,13 +3,15 @@ export async function initClienteDB() {
   const conn = await pool.getConnection();
   try {
     await conn.query(`
-      CREATE TABLE IF NOT EXISTS salidas (
-        id            INT AUTO_INCREMENT PRIMARY KEY,
-        nro_salida    INT          NOT NULL,
-        codigo_barras VARCHAR(50)  NOT NULL,
-        fecha_salida  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+  CREATE TABLE IF NOT EXISTS salidas (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    nro_salida    INT          NOT NULL DEFAULT 0,
+    codigo_barras VARCHAR(50)  NULL,
+    estado        ENUM('distribuido','descarte_conocido','descarte_desconocido')
+                  NOT NULL DEFAULT 'distribuido',
+    fecha_salida  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
     console.log("✅ Tabla salidas lista");
     await conn.query(`
       CREATE TABLE IF NOT EXISTS sync_log (

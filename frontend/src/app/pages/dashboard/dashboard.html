@@ -211,16 +211,22 @@
               <td class="px-5 py-3.5 text-slate-300 font-mono">{{ salida.codigo_barras }}</td>
               <td class="px-5 py-3.5 text-slate-300">{{ salida.nro_salida }}</td>
               <td class="px-5 py-3.5">
-                @if (salida.estado === 'descarte') {
+                @if (salida.estado === 'descarte_desconocido') {
                 <span
-                  class="inline-flex items-center gap-1 text-xs bg-red-500/10 border border-red-500/30 text-red-400 px-2 py-0.5 rounded-full">
-                  <span class="w-1 h-1 bg-red-400 rounded-full"></span>
+                  class="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-slate-500/10 border border-slate-500/20 text-slate-400 font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                  Desconocido
+                </span>
+                } @else if (salida.estado === 'descarte_conocido') {
+                <span
+                  class="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
                   Descarte
                 </span>
                 } @else {
                 <span
-                  class="inline-flex items-center gap-1 text-xs bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2 py-0.5 rounded-full">
-                  <span class="w-1 h-1 bg-emerald-400 rounded-full"></span>
+                  class="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-medium">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                   Distribuido
                 </span>
                 }
